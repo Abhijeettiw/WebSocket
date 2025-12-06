@@ -1,11 +1,28 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { Client } from '@stomp/stompjs';
 import reactLogo from './assets/react.svg'
 import viteLogo from '/vite.svg'
 import './App.css'
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [message, setMessage] = useState("Hi 👋")
+  useEffect(() => {
+    const client = new Client({
+      brokerURL: "ws://localhost:8080/web_socket",
+      reconnectDelay: 5000,
 
+      onConnect: () => {
+        console.log("Connected");
+
+        client.subscribe("/topic/data", (msg) => {
+          console.log(msg.body);
+          setMessage(msg.body);
+        });
+      },
+    });
+    client.activate();
+    return () => client.deactivate();
+  }, []);
   return (
     <>
       <div>
@@ -18,9 +35,9 @@ function App() {
       </div>
       <h1>Vite + React</h1>
       <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
+        <div>
+          {message}
+        </div>
         <p>
           Edit <code>src/App.jsx</code> and save to test HMR
         </p>
